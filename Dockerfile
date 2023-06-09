@@ -12,5 +12,8 @@ RUN pip install -r requirements.txt
 #File containing the webservice code
 COPY app.py /app
 
+#File containing the receipt schema
+COPY given_schema.py /app
+
 ENTRYPOINT [ "python" ]
 CMD [ "app.py" ]

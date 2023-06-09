@@ -4,66 +4,31 @@ import jsonschema
 import os
 from math import ceil
 from datetime import datetime
-
+from given_schema import receipt_schema
 
 app = Flask(__name__)
 
 #stores all the user entered receipts
 receipts = {}
 
-# JSON Schema for validating the receipt - as provided in api.yml
-receipt_schema = {
-    "type": "object",
-    "required": ["retailer", "purchaseDate", "purchaseTime", "items", "total"],
-    "properties": {
-        "retailer": {
-            "description": "The name of the retailer or store the receipt is from.",
-            "type": "string",
-            "pattern": "^\\S+$"
-        },
-        "purchaseDate": {
-            "description": "The date of the purchase printed on the receipt.",
-            "type": "string",
-            "format": "date"
-        },
-        "purchaseTime": {
-            "description": "The time of the purchase printed on the receipt. 24-hour time expected.",
-            "type": "string",
-            "format": "time"
-        },
-        "items": {
-            "type": "array",
-            "minItems": 1,
-            "items": {"$ref": "#/definitions/item"}
-        },
-        "total": {
-            "description": "The total amount paid on the receipt.",
-            "type": "string",
-            "pattern": "^\\d+\\.\\d{2}$"
-        }
-    },
-    "definitions": {
-        "item": {
-            "type": "object",
-            "required": ["shortDescription", "price"],
-            "properties": {
-                "shortDescription": {
-                    "description": "The Short Product Description for the item.",
-                    "type": "string",
-                    "pattern": "^[\\w\\s\\-]+$"
-                },
-                "price": {
-                    "description": "The total price paid for this item.",
-                    "type": "string",
-                    "pattern": "^\\d+\\.\\d{2}$"
-                }
-            }
-        }
-    }
-}
-
-#function to calculate points based on given conditions
 def calculate_points(receipt):
+    """
+    calculate_points(receipt)
+    
+    for a given json representing the entered receipt, it calculates points based on given conditions
+    
+    Parameters
+    -----------
+    
+    receipt (dict): Receipt json
+    
+    Returns
+    -----------
+    
+    points (int): Points based on conditions
+    
+    """ 
+
     points = 0
 
     # One point for every alphanumeric character in the retailer name.
@@ -106,9 +71,24 @@ def calculate_points(receipt):
 
     return points
 
-# Post method
+
 @app.route('/receipts/process', methods=['POST'])
 def create_receipt():
+    """
+    create_receipt()
+
+    Post method which stores the given receipt alongwith its points.
+
+    Parameters
+    -----------
+
+    Returns
+    -----------
+
+     (str): Response: 400 response if receipt invalid, if valid - 200 response with generated id.
+
+    """ 
+
     receipt_data = request.json
 
     # Validating the received JSON data against the schema
@@ -129,9 +109,26 @@ def create_receipt():
     response = {'id': receipt_id}
     return jsonify(response), 200
 
-# Get method
+
+
 @app.route('/receipts/<receipt_id>/points', methods=['GET'])
 def get_receipt(receipt_id):
+    """
+    get_receipt(receipt_id)
+    
+    GET method which returns the points for a given receipt id.
+    
+    Parameters
+    -----------
+    
+    receipt_id (str): Generated receipt id
+    
+    Returns
+    -----------
+    
+     (str): points: 'points' / error: 404
+    
+    """ 
     if receipt_id in receipts:
         return jsonify({'points': receipts[receipt_id]['points']})
     else:
